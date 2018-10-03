@@ -37,6 +37,8 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
 
 // Skew a file by it's contents. Returns the contents of the file after the skew is complete.
 fn skew_file_contents(contents: String, millis: i64) -> String {
+    let mut adjusted_file: Vec<String> = Vec::new();
+
     let lines: Vec<&str> = contents.split("\n").collect();
     for line in lines {
         if line.contains(DURATION_SEP) {
@@ -44,19 +46,50 @@ fn skew_file_contents(contents: String, millis: i64) -> String {
             let end = durations.pop().unwrap();
             let start = durations.pop().unwrap();
 
-            skew_duration(end.to_string(), millis);
-            skew_duration(start.to_string(), millis);
+            let new_end = skew_duration(end.trim().to_string(), millis);
+            let new_start = skew_duration(start.trim().to_string(), millis);
+            let new_duration = format!("{} {} {}", new_start, DURATION_SEP, new_end);
+
+            adjusted_file.push(new_duration)
+        } else {
+            adjusted_file.push(line.to_string())
         }
     }
 
-    return "".to_string();
+    adjusted_file.join("\n")
 }
 
 // Adjust an SRT duration by millis milliseconds.
 // A duration is in the format
 //   00:01:19,740 i.e. {hours}:{mins}:{seconds},{milliseconds}
-fn skew_duration(duration: String, millis: i64) -> String {
-    "".to_string()
+fn skew_duration(duration: String, skew: i64) -> String {
+    let mut duration_vec: Vec<&str> = duration.split(":").collect();
+    let mut secs_with_millis: Vec<&str> = duration_vec.pop().unwrap().split(",").collect();
+
+    let mut minutes = duration_vec.pop().unwrap().parse::<i64>().unwrap();
+    let mut hours = duration_vec.pop().unwrap().parse::<i64>().unwrap();
+    let mut millis = secs_with_millis.pop().unwrap().parse::<i64>().unwrap();
+    let mut seconds = secs_with_millis.pop().unwrap().parse::<i64>().unwrap();
+
+    millis += skew;
+    seconds += millis / 1000;
+    millis = millis % 1000;
+    minutes += seconds / 60;
+    seconds = seconds % 60;
+    hours += minutes / 60;
+    minutes = minutes % 60;
+
+    let new_duration = format!(
+        "{:0padding$}:{:0padding$}:{:0padding$},{:0padding_millis$}",
+        hours,
+        minutes,
+        seconds,
+        millis,
+        padding = 2,
+        padding_millis = 3
+    );
+
+    new_duration.to_string()
 }
 
 #[cfg(test)]
