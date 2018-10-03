@@ -43,8 +43,9 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
     Ok(())
 }
 
+// The current UNIX timestamp.
 fn timestamp_now() -> Result<Duration, SystemTimeError> {
-    return SystemTime::now().duration_since(UNIX_EPOCH);
+    SystemTime::now().duration_since(UNIX_EPOCH)
 }
 
 // Skew a file by it's contents. Returns the contents of the file after the skew is complete.
