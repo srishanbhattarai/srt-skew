@@ -1,4 +1,4 @@
-# srt-skew
+# srt-skew &middot; [![Build Status](https://travis-ci.com/srishanbhattarai/srt-skew.svg?branch=master)](https://travis-ci.com/srishanbhattarai/srt-skew)
 
 > Skew an SRT file by a number of milliseconds.
 
