@@ -1,0 +1,8 @@
+[package]
+name = "srt-skew"
+version = "0.1.0"
+authors = ["Srishan Bhattarai <srishanbhattarai@gmail.com>"]
+
+[dependencies]
+clap = "2.32.0"
+colored = "1.6"
