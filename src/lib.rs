@@ -1,6 +1,7 @@
 use std::error::Error;
-use std::fs::File;
-use std::io::Read;
+use std::fs;
+use std::io::{Read, Write};
+use std::time::{Duration, SystemTime, SystemTimeError, UNIX_EPOCH};
 
 // Subtitle durations are separated by this sequence of chars.
 const DURATION_SEP: &str = "-->";
@@ -22,17 +23,28 @@ impl Config {
 
 // Run the skew based on the config.
 pub fn run(config: Config) -> Result<(), Box<Error>> {
-    let mut file = File::open(config.file_path)?;
+    // Read the input file
+    let mut file = fs::File::open(config.file_path.clone())?;
     let mut contents = String::new();
-
     file.read_to_string(&mut contents)?;
 
+    // Evaluate new data for the file.
     let skewed_file_contents = skew_file_contents(contents, config.skew_millis);
 
-    // Rename file to a backup name.
-    // Write back to disk with skewed_file_contents
+    // Backup the input file
+    let now = timestamp_now()?.as_secs();
+    let backup_file_name = format!("{}-{}", now, config.file_path.clone());
+    fs::rename(config.file_path.clone(), backup_file_name)?;
+
+    // Re-create the input file with the same name and new contents.
+    let mut file = fs::File::create(config.file_path)?;
+    file.write_all(skewed_file_contents.as_bytes())?;
 
     Ok(())
+}
+
+fn timestamp_now() -> Result<Duration, SystemTimeError> {
+    return SystemTime::now().duration_since(UNIX_EPOCH);
 }
 
 // Skew a file by it's contents. Returns the contents of the file after the skew is complete.
