@@ -25,5 +25,7 @@ To skew a file backwards by 300 milliseconds:
 $ srt-skew --file=/path/to/srt --millis=-300
 ```
 
+The old file, before any adjustments, will be backed up with the current timestamp appended to the filename.
+
 ## License
 MIT
